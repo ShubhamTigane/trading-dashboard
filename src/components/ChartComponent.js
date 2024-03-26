@@ -22,6 +22,30 @@ const ChartComponent = ({ data }) => {
       // autoSize: true,
     });
 
+      //appending logo
+
+    const logoImage = new Image();
+    logoImage.src = logo;
+    logoImage.alt="logo"
+
+    logoImage.onload = () => {
+      logoImage.style.position = "absolute";
+      logoImage.style.zIndex = 0;
+      logoImage.style.position = "center";
+      logoImage.style.top = "10px";
+      logoImage.style.width = "100px";
+      logoImage.style.left = "50%";
+      
+
+      chartContainer.current.appendChild(logoImage);
+    };
+    chart.applyOptions({
+      layout: {
+        // setting chart background color to transparent so we can see the elements below
+        background: { type: "solid", color: "transparent" },
+      },
+    });
+    
     // Apply options to the chart
     // chart.applyOptions({
     //   watermark: {
@@ -168,18 +192,19 @@ const ChartComponent = ({ data }) => {
         >
           Drawdown Period
         </div>
-        <img
+       {/* <img
           src={logo}
           alt="Logo"
           style={{
             position: "absolute",
-            top: 20,
-            zIndex: 20,
+            top: 50,
+            zIndex: -1, //changing zIndex to -1 gives same result 
             left: "50%",
             transform: "translate(-50%, -50%)",
             width: 100,
+           
           }}
-        />
+        /> */}
 
         <div
           style={{
