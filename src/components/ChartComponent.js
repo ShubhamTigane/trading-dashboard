@@ -126,7 +126,7 @@ const ChartComponent = ({ data }) => {
           ref={tooltipRef}
           style={{
             color: "black",
-            fontSize: "20px",
+            fontSize: "17px",
             position: "absolute",
             width: 180,
             height: 180,
