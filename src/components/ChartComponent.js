@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createChart } from "lightweight-charts";
 import returns from "../data/returns.json";
 import periodsData from "../data/ddperiod.json";
@@ -6,6 +6,13 @@ import logo from "../static/logo.png";
 
 const ChartComponent = ({ data }) => {
   const chartContainer = useRef(null);
+
+  const [pnlPrice, setPnlPrice] = useState(null);
+  const [cumsumPrice, setCumsumPrice] = useState(null);
+
+  const tooltipRef = useRef(null);
+
+  const [currentTime, setCurrentTime] = useState(null);
 
   useEffect(() => {
     // Create the chart instance
@@ -70,6 +77,43 @@ const ChartComponent = ({ data }) => {
       }
     });
 
+    //
+    // Subscribe to crosshair move events
+    chart.subscribeCrosshairMove((param) => {
+      if (param.time) {
+        const pnlPriceData = param.seriesData.get(pnlSeries);
+        setPnlPrice(pnlPriceData);
+        const cumsumPriceData = param.seriesData.get(cumsumSeries);
+        setCumsumPrice(cumsumPriceData);
+
+        const coordinate = pnlSeries.priceToCoordinate(pnlPriceData.value);
+
+        const shiftedCoordinate = param.point.x;
+
+        tooltipRef.current.style.display = "block";
+        tooltipRef.current.style.left = shiftedCoordinate + "px";
+        tooltipRef.current.style.top = coordinate + "px";
+
+        const chartRect = chartContainer.current.getBoundingClientRect();
+        const tooltipHeight = tooltipRef.current.offsetHeight;
+        const topPadding = 10;
+        const mouseY = param.point.y + chartRect.top;
+
+        if (mouseY + tooltipHeight + topPadding <= window.innerHeight) {
+          tooltipRef.current.style.top = mouseY + topPadding + "px";
+        } else {
+          tooltipRef.current.style.top =
+            window.innerHeight - tooltipHeight + "px";
+        }
+
+        setCurrentTime(new Date(param.time).toLocaleDateString());
+      } else {
+        tooltipRef.current.style.display = "none";
+      }
+    });
+
+    //
+
     return () => {
       chart.remove();
     };
@@ -78,6 +122,40 @@ const ChartComponent = ({ data }) => {
   return (
     <div>
       <div ref={chartContainer} style={{ position: "relative" }}>
+        <div
+          ref={tooltipRef}
+          style={{
+            color: "black",
+            fontSize: "20px",
+            position: "absolute",
+            width: 180,
+            height: 180,
+            border: "2px solid",
+            borderColor: "#1ad2ad",
+            zIndex: 1000,
+            background: "#FAFAFA",
+            textAlign: "center",
+            margin: "4px 0px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            boxShadow: "0 0 7px rgba(0, 0, 0, 0.5)",
+          }}
+        >
+          {/* <h3>MaticAlgos</h3> */}
+          <p>
+            <img
+              src={logo}
+              alt="Logo"
+              style={{
+                width: 100,
+              }}
+            />
+          </p>
+          <p>Cumsum : {cumsumPrice?.value} </p>
+          <p>PNL : {pnlPrice?.value} </p>
+          <p>Date : {currentTime} </p>
+        </div>
+
         <div
           style={{
             position: "absolute",
@@ -95,7 +173,7 @@ const ChartComponent = ({ data }) => {
           alt="Logo"
           style={{
             position: "absolute",
-            bottom: 20,
+            top: 20,
             zIndex: 20,
             left: "50%",
             transform: "translate(-50%, -50%)",
